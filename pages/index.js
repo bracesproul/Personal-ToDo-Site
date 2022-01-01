@@ -28,8 +28,6 @@ onAuthStateChanged(auth, (user) => {
     // User is signed in, see docs for a list of available properties
     // https://firebase.google.com/docs/reference/js/firebase.User
     const uid = user.uid;
-    console.log(uid)
-    console.log(auth.currentUser.uid)
   } else {
     console.log('not logged in')
     signInWithRedirect(auth, provider);
@@ -37,18 +35,13 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-
-
-
-//const analytics = getAnalytics(app);
-
 export default function Home() {
   return (
     <div>
       <SignOut />
-      <All />
+      <All /> 
     </div> 
-  )
+  ) 
 }
 
 const All = () => {
@@ -70,7 +63,20 @@ const All = () => {
 
     const [todo, setTodo] = useState('')
     const [toDoTitle, setToDoTitle] = useState('')
-    const [render, setRender] = useState(0)
+    const [loggedIn, setLoggedIn] = useState(false)
+
+    useEffect(() => {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const uid = user.uid;
+          if ( uid === "nYWOJWcGbEfHCg3J6bG8fyPhqjl1" ) {
+            setLoggedIn(true)
+          }
+        } else {
+          //user logged out
+        }
+      });
+    }, [])
   
     const handleSubmit = async (e) => {
       e.preventDefault()
@@ -99,13 +105,17 @@ const All = () => {
   
     return (
       <div>
-        <h1>Add todo</h1>
-        <form method="POST" id="addToDo">
-          <label htmlFor="addToDo">Add To Do</label> <br />
-          <input placeholder='Title' type="text" name="title" onChange={e => handleTitleChange(e)} /> <br />
-          <textarea placeholder='ToDo' name="addToDo" onChange={e => handleTextChange(e)} /> <br />
-          <button onClick={e => handleSubmit(e)}>Add</button>
-        </ form>
+        { loggedIn ? (
+          <>
+          <h1>Add todo</h1>
+          <form method="POST" id="addToDo">
+            <label htmlFor="addToDo">Add To Do</label> <br />
+            <input placeholder='Title' type="text" name="title" onChange={e => handleTitleChange(e)} /> <br />
+            <textarea placeholder='ToDo' name="addToDo" onChange={e => handleTextChange(e)} /> <br />
+            <button onClick={e => handleSubmit(e)}>Add</button>
+          </ form>
+          </>
+        ) : <h1>You are not admin</h1> }
       </div>
     )
   }
@@ -113,8 +123,7 @@ const All = () => {
   const DisplayToDo = () => {
   
     const [readTodo, setReadTodo] = useState([{}])
-    const [renderTodo, setRenderTodo] = useState();
-    const [render, setRender] = useState(0)
+    const [loggedIn, setLoggedIn] = useState(false)
   
     useEffect(() => {
       async function getToDo() {
@@ -126,6 +135,19 @@ const All = () => {
       }
       getToDo();
     }, [])  
+    
+    useEffect(() => {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const uid = user.uid;
+          if ( uid === "nYWOJWcGbEfHCg3J6bG8fyPhqjl1" ) {
+            setLoggedIn(true)
+          }
+        } else {
+          //user logged out
+        }
+      });
+    }, [])
   
     const toDoV = readTodo.map((todo, index) => {
       const id = todo.id;
@@ -144,28 +166,21 @@ const All = () => {
       console.log(toDoId)
       await deleteDoc(doc(db, 'todo', toDoId))
       console.log('doc deleted')
-      setRender(prev => prev + 1)
       return false;
     }
      
     return (
       <div>
         <h1>Todo</h1>
-        {toDoV}
+        { loggedIn ? toDoV : null }
       </div>
     )
   }
 
-
   return (
     <>
-      {!user === 'nYWOJWcGbEfHCg3J6bG8fyPhqjl1' ? <h1>Guest</h1> : 
-      <>
-        <AddToDo />
-        <DisplayToDo />
-      </>
-      }
-
+      <AddToDo />
+      <DisplayToDo />
     </>
   )
 }
@@ -184,5 +199,3 @@ const SignOut = () => {
     <button onClick={e => signout(e)}>Sign Out</button>
   )
 }
-
-
