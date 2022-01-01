@@ -29,7 +29,7 @@ onAuthStateChanged(auth, (user) => {
     // https://firebase.google.com/docs/reference/js/firebase.User
     const uid = user.uid;
   } else {
-    console.log('not logged in')
+    //console.log('not logged in')
     signInWithRedirect(auth, provider);
     //console.log(auth.currentUser.uid)
   }
@@ -56,8 +56,6 @@ const All = () => {
       setUser(auth.currentUser.uid)
     }
   }, [])
-
-  console.log(user)
 
   const AddToDo = () => {
 
@@ -93,14 +91,14 @@ const All = () => {
       e.preventDefault()
       const value = e.target.value;
       setTodo(value)
-      console.log(todo)
+      //console.log(todo)
     }
   
     const handleTitleChange = (e) => {
       e.preventDefault()
       const value = e.target.value;
       setToDoTitle(value)
-      console.log(toDoTitle)
+      //console.log(toDoTitle)
     }
   
     return (
@@ -153,6 +151,7 @@ const All = () => {
       const id = todo.id;
       return (
         <div key={index}>
+          <h1>Todo</h1>
           <h1>Title: {todo.title}</h1>
           <h3>Body: {todo.toDo}</h3>
           <button onClick={(e) => handleComplete(e, id)}>Remove</button>
@@ -163,15 +162,14 @@ const All = () => {
   
     const handleComplete = async (e, id) => {
       const toDoId = id;
-      console.log(toDoId)
+      //console.log(toDoId)
       await deleteDoc(doc(db, 'todo', toDoId))
-      console.log('doc deleted')
+      //console.log('doc deleted')
       return false;
     }
      
     return (
       <div>
-        <h1>Todo</h1>
         { loggedIn ? toDoV : null }
       </div>
     )
@@ -189,9 +187,9 @@ const SignOut = () => {
 
   const signout = (e) => {
     signOut(auth).then(() => {
-      console.log('Sign-out successful.');
+      //console.log('Sign-out successful.');
     }).catch((error) => {
-      console.log('error:', error);
+      //console.log('error:', error);
     });
   }
 
