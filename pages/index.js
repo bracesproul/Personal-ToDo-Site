@@ -1,7 +1,7 @@
 import styles from '../styles/Home.module.css'
 import React, { useState, useEffect } from 'react'
 import { nanoid } from 'nanoid'
-
+import Link from 'next/link'
 import { initializeApp } from "firebase/app";
 import { getAnalytics, setUserId } from "firebase/analytics";
 import { doc, setDoc, getFirestore, collection, query, getDocs, deleteDoc } from "firebase/firestore"; 
@@ -62,6 +62,7 @@ const All = () => {
     const [todo, setTodo] = useState('')
     const [toDoTitle, setToDoTitle] = useState('')
     const [loggedIn, setLoggedIn] = useState(false)
+    const [link, setLink] = useState('')
 
     useEffect(() => {
       onAuthStateChanged(auth, (user) => {
@@ -82,6 +83,7 @@ const All = () => {
       await setDoc(doc(db, 'todo', toDoId), {
         title: toDoTitle,
         toDo: todo,
+        link: link,
         id: toDoId
       })
       location.reload()
@@ -100,6 +102,13 @@ const All = () => {
       setToDoTitle(value)
       //console.log(toDoTitle)
     }
+
+    const handleLinkChange = e => {
+      e.preventDefault()
+      const value = e.target.value;
+      setLink(value)
+      //console.log(toDoTitle)
+    }
   
     return (
       <div>
@@ -110,6 +119,7 @@ const All = () => {
             <label htmlFor="addToDo">Add To Do</label> <br />
             <input placeholder='Title' type="text" name="title" onChange={e => handleTitleChange(e)} /> <br />
             <textarea placeholder='ToDo' name="addToDo" onChange={e => handleTextChange(e)} /> <br />
+            <input type="text" name="link" placeholder='Link' onChange={e => handleLinkChange(e)} /> <br />
             <button onClick={e => handleSubmit(e)}>Add</button>
           </ form>
           </>
@@ -149,11 +159,17 @@ const All = () => {
   
     const toDoV = readTodo.map((todo, index) => {
       const id = todo.id;
+      let linkFromDB = todo.link;
+      if (linkFromDB == undefined) {
+        linkFromDB = '';
+      }
       return (
         <div key={index}>
-          <h1>Todo</h1>
-          <h1>Title: {todo.title}</h1>
-          <h3>Body: {todo.toDo}</h3>
+          <h3>Title: {todo.title}</h3>
+          <h4>Body:</h4>
+          <p>{todo.toDo}</p>
+          <hr />
+          <p style={stylesForLink}><Link href={linkFromDB} >{linkFromDB}</Link></p>
           <button onClick={(e) => handleComplete(e, id)}>Remove</button>
           <hr />
         </div>
@@ -196,4 +212,8 @@ const SignOut = () => {
   return (
     <button onClick={e => signout(e)}>Sign Out</button>
   )
+}
+
+const stylesForLink = {
+  "color": "blue"
 }
