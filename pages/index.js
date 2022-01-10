@@ -7,7 +7,6 @@ import { getAnalytics, setUserId } from "firebase/analytics";
 import { doc, setDoc, getFirestore, collection, query, getDocs, deleteDoc } from "firebase/firestore"; 
 import { GoogleAuthProvider, signInWithRedirect, getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
-
 const firebaseConfig = {
   apiKey: "AIzaSyCT1A-nxNjwYuGFSLqoB0sfilLcfzFq9T0",
   authDomain: "personal-70519.firebaseapp.com",
@@ -130,7 +129,7 @@ const All = () => {
   
   const DisplayToDo = () => {
   
-    const [readTodo, setReadTodo] = useState([{}])
+    const [readTodo, setReadTodo] = useState([])
     const [loggedIn, setLoggedIn] = useState(false)
   
     useEffect(() => {
@@ -164,23 +163,19 @@ const All = () => {
         linkFromDB = '';
       }
       return (
-        <div key={index}>
+        <div className={styles.flexContainer} key={index}>
           <h3>Title: {todo.title}</h3>
           <h4>Body:</h4>
           <p>{todo.toDo}</p>
-          <hr />
           <p style={stylesForLink}><Link href={linkFromDB} >{linkFromDB}</Link></p>
           <button onClick={(e) => handleComplete(e, id)}>Remove</button>
-          <hr />
         </div>
       )
     })
   
     const handleComplete = async (e, id) => {
       const toDoId = id;
-      //console.log(toDoId)
       await deleteDoc(doc(db, 'todo', toDoId))
-      //console.log('doc deleted')
       return false;
     }
      
@@ -191,10 +186,81 @@ const All = () => {
     )
   }
 
+  const DisplayList = () => {
+    const dateV = new Date();
+    const date = `${dateV.toLocaleDateString()} ${dateV.toLocaleTimeString()}`
+    console.log(date)
+
+    const [list, setList] = useState('')
+    const [listFromDB, setListFromDB] = useState([])
+
+    useEffect(() => {
+      async function getList() {
+        const q = query(collection(db, 'list'));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          console.log(doc.id, '=>', doc.data())
+          setListFromDB((prev) => [...prev, doc.data()])
+        });
+      }
+      getList();
+    }, [])
+
+    const handleListChange = (e) => {
+      const value = e.target.value;
+      setList(value)
+      console.log(list)
+    }
+
+    const handleListSubmit = async (e) => {
+      e.preventDefault();
+      const listId = nanoid();
+      const forDB = {
+        list: list,
+        id: listId,
+        date: date
+      }
+      await setDoc(doc(db, 'list', listId), forDB)
+      console.log(forDB)
+      location.reload()
+    }
+
+    const handleDelete = async (e, id) => {
+      e.preventDefault();
+      const listId = id;
+      await deleteDoc(doc(db, 'list', listId));
+      location.reload()
+    }
+
+    const writeList = listFromDB.map((list, index) => {
+      return (
+        <div className={styles.eachList} key={index}>
+          <p className={styles.listDate}>{list.date}</p>
+          <p className={styles.listText}>{list.list}</p>
+          <button onClick={e => handleDelete(e, list.id)}>Delete</button>
+        </div>
+      )
+    })
+
+    return (
+      <div className={styles.listContainer}>
+        <h1>List</h1>
+        <input type="text" placeholder='Add list item' name="list" onChange={(e => handleListChange(e))} />
+        <button onClick={e => handleListSubmit(e)} >Add</button>
+        <div>
+          {writeList}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <AddToDo />
-      <DisplayToDo />
+      <div className={styles.flexAll}>
+        <DisplayToDo />
+        <DisplayList />
+      </div>
     </>
   )
 }
