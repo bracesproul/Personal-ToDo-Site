@@ -36,7 +36,7 @@ onAuthStateChanged(auth, (user) => {
 
 export default function Home() {
   return (
-    <div>
+    <div className={styles.Main}>
       <SignOut />
       <All /> 
     </div> 
@@ -116,10 +116,10 @@ const All = () => {
           <h1>Add todo</h1>
           <form method="POST" id="addToDo">
             <label htmlFor="addToDo">Add To Do</label> <br />
-            <input placeholder='Title' type="text" name="title" onChange={e => handleTitleChange(e)} /> <br />
-            <textarea placeholder='ToDo' name="addToDo" onChange={e => handleTextChange(e)} /> <br />
-            <input type="text" name="link" placeholder='Link' onChange={e => handleLinkChange(e)} /> <br />
-            <button onClick={e => handleSubmit(e)}>Add</button>
+            <input className={styles.forms} placeholder='Title' type="text" name="title" onChange={e => handleTitleChange(e)} /> <br />
+            <textarea className={styles.forms} placeholder='ToDo' name="addToDo" onChange={e => handleTextChange(e)} /> <br />
+            <input className={styles.forms} type="text" name="link" placeholder='Link' onChange={e => handleLinkChange(e)} /> <br />
+            <button className={styles.button} onClick={e => handleSubmit(e)}>Add</button>
           </ form>
           </>
         ) : <h1>You are not admin</h1> }
@@ -167,8 +167,8 @@ const All = () => {
           <h3>Title: {todo.title}</h3>
           <h4>Body:</h4>
           <p>{todo.toDo}</p>
-          <p style={stylesForLink}><Link href={linkFromDB} >{linkFromDB}</Link></p>
-          <button onClick={(e) => handleComplete(e, id)}>Remove</button>
+          <p style={stylesForLink}><a className={styles.link} href={linkFromDB} >{linkFromDB}</a></p>
+          <button className={styles.button} onClick={(e) => handleComplete(e, id)}>Remove</button>
         </div>
       )
     })
@@ -189,17 +189,19 @@ const All = () => {
   const DisplayList = () => {
     const dateV = new Date();
     const date = `${dateV.toLocaleDateString()} ${dateV.toLocaleTimeString()}`
-    console.log(date)
+    //console.log(date)
 
     const [list, setList] = useState('')
     const [listFromDB, setListFromDB] = useState([])
+    const [checker, setChecker] = useState(false)
+    const [description, setDescription] = useState('')
 
     useEffect(() => {
       async function getList() {
         const q = query(collection(db, 'list'));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
-          console.log(doc.id, '=>', doc.data())
+          //console.log(doc.id, '=>', doc.data())
           setListFromDB((prev) => [...prev, doc.data()])
         });
       }
@@ -208,8 +210,14 @@ const All = () => {
 
     const handleListChange = (e) => {
       const value = e.target.value;
+      if (value.includes('http')) setChecker(true)
       setList(value)
-      console.log(list)
+      //console.log(list)
+    }
+
+    const handleDescriptionChange = (e) => {
+      const description = e.target.value;
+      setDescription(description)
     }
 
     const handleListSubmit = async (e) => {
@@ -217,11 +225,12 @@ const All = () => {
       const listId = nanoid();
       const forDB = {
         list: list,
+        description: description,
         id: listId,
         date: date
       }
       await setDoc(doc(db, 'list', listId), forDB)
-      console.log(forDB)
+      //console.log(forDB)
       location.reload()
     }
 
@@ -233,11 +242,13 @@ const All = () => {
     }
 
     const writeList = listFromDB.map((list, index) => {
+      let linkChecker = false;
+      if (list.list.includes('http')) linkChecker = true;
       return (
         <div className={styles.eachList} key={index}>
           <p className={styles.listDate}>{list.date}</p>
-          <p className={styles.listText}>{list.list}</p>
-          <button onClick={e => handleDelete(e, list.id)}>Delete</button>
+          {linkChecker ? <a href={list.list} className={styles.link}><p>{list.description}</p></a> : <p className={styles.listText}>{list.list}</p>}
+          <button className={styles.button} onClick={e => handleDelete(e, list.id)}>Delete</button>
         </div>
       )
     })
@@ -245,8 +256,9 @@ const All = () => {
     return (
       <div className={styles.listContainer}>
         <h1>List</h1>
-        <input type="text" placeholder='Add list item' name="list" onChange={(e => handleListChange(e))} />
-        <button onClick={e => handleListSubmit(e)} >Add</button>
+        <input className={styles.forms} type="text" placeholder='Add list item' name="list" onChange={(e => handleListChange(e))} />
+        { checker ? <input className={styles.forms} type="text" placeholder='Add description' name="description" onChange={(e => handleDescriptionChange(e))} /> : null }
+        <button className={styles.button} onClick={e => handleListSubmit(e)} >Add</button>
         <div>
           {writeList}
         </div>
@@ -255,13 +267,13 @@ const All = () => {
   }
 
   return (
-    <>
+    <div className={styles.Main}>
       <AddToDo />
       <div className={styles.flexAll}>
         <DisplayToDo />
         <DisplayList />
       </div>
-    </>
+    </div>
   )
 }
 
@@ -276,7 +288,7 @@ const SignOut = () => {
   }
 
   return (
-    <button onClick={e => signout(e)}>Sign Out</button>
+    <button className={styles.button} onClick={e => signout(e)}>Sign Out</button>
   )
 }
 
